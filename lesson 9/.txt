@@ -1,0 +1,293 @@
+Ob'ekt
+Tur JavaScript ma'lumotlar turlaridanObject birini ifodalaydi . U turli xil kalitli to'plamlarni va murakkabroq ob'ektlarni saqlash uchun ishlatiladi. Ob'ektlar konstruktor yoki ob'ektni ishga tushirish / literal sintaksisi yordamida yaratilishi mumkin .Object()
+
+Tavsif
+JavaScript-dagi deyarli barcha ob'ektlar ning misollari Object; tipik ob'ekt dan xususiyatlarni (shu jumladan usullarni) meros qilib oladi Object.prototype, garchi bu xususiyatlar soyada bo'lishi mumkin (aka bekor qilingan). Meros olmaydigan yagona ob'ektlar prototype ga ega yoki boshqa prototip ob'ektlaridan kelib chiqqan Object.prototypeob'ektlardir .nullnull
+
+Ob'ektdagi o'zgarishlar barchaObject.prototype ob'ektlar tomonidan prototip zanjiri orqali ko'rinadi , agar ushbu o'zgarishlarga duchor bo'lgan xususiyatlar va usullar prototip zanjiri bo'ylab bekor qilinmasa. Bu ob'ekt xatti-harakatlarini bekor qilish yoki kengaytirish uchun juda kuchli, ammo potentsial xavfli mexanizmni ta'minlaydi. Uni xavfsizroq qilish uchun JavaScript-ning asosiy tilidagi yagona ob'ekt o'zgarmas prototipga ega - prototipi har doim va o'zgarmasdir.Object.prototypeObject.prototypenull
+
+Ob'ekt prototipining xususiyatlari
+Siz to'g'ridan-to'g'ri misoldan biron bir usulni chaqirishdan qochishingiz kerak Object.prototype, ayniqsa polimorf bo'lish uchun mo'ljallanmagan (ya'ni faqat uning dastlabki xatti-harakati mantiqiy va hech qanday tushuvchi ob'ekt uni mazmunli tarzda bekor qila olmaydi). Pastga tushadigan barcha ob'ektlar Object.prototypebir xil nomga ega, ammo siz kutganingizdan butunlay boshqacha semantikaga ega bo'lgan shaxsiy xususiyatni belgilashi mumkin. Bundan tashqari, bu xususiyatlar null-prototype ob'ektlari tomonidan meros qilib olinmaydi . Ob'ektlar bilan ishlash uchun barcha zamonaviy JavaScript yordam dasturlari statikdir . Aniqroq aytganda:
+
+valueOf(), toString(), va toLocaleString()mavjud bo'lib, polimorf bo'ladi va siz ob'ektni oqilona xatti-harakatlar bilan o'z amalga oshirishini aniqlashini kutishingiz kerak, shuning uchun ularni misol usullari sifatida chaqirishingiz mumkin. Biroq, valueOf()va odatda turni o'zgartirishtoString() orqali bilvosita chaqiriladi va ularni kodingizda o'zingiz chaqirishingiz shart emas.
+__defineGetter__(), __defineSetter__(), __lookupGetter__(), va __lookupSetter__()eskirgan va ishlatilmasligi kerak. Object.defineProperty()Buning o'rniga statik muqobillardan foydalaning Object.getOwnPropertyDescriptor().
+Mulk __proto__eskirgan va foydalanilmasligi kerak. va muqobillari statik usullardir Object.getPrototypeOf().Object.setPrototypeOf()
+va usullari mos ravishda va statik usullar propertyIsEnumerable()bilan hasOwnProperty()almashtirilishi mumkin .Object.getOwnPropertyDescriptor()Object.hasOwn()
+Agar siz konstruktorning xususiyatini tekshirayotgan bo'lsangiz, usul isPrototypeOf()odatda bilan almashtirilishi mumkin .instanceofprototype
+Agar semantik jihatdan ekvivalent statik usul mavjud bo'lmasa yoki siz haqiqatan ham usuldan foydalanmoqchi bo'lsangiz , ob'ekt kutilmagan natijalarni keltirib chiqaradigan xususiyatga ega bo'lishining oldini olish uchun maqsadli ob'ektingizdagi usulni to'g'ridan- to'g'ri Object.prototypeishlatishingiz kerak .call()Object.prototype
+
+JS
+Buferga nusxalash
+const obj = {
+  foo: 1,
+  // You should not define such a method on your own object,
+  // but you may not be able to prevent it from happening if
+  // you are receiving the object from external input
+  propertyIsEnumerable() {
+    return false;
+  },
+};
+
+obj.propertyIsEnumerable("foo"); // false; unexpected result
+Object.prototype.propertyIsEnumerable.call(obj, "foo"); // true; expected result
+Ob'ektdan xususiyatni o'chirish
+Ob'ektning o'zida o'z xususiyatlarini (masalan, ) o'chirish uchun hech qanday usul yo'q Map.prototype.delete(). Buning uchun operatordan foydalanish kerak delete.
+
+null-prototip ob'ektlari
+JavaScript-dagi deyarli barcha ob'ektlar oxir-oqibat meros oladi Object.prototype(qarang: meros va prototip zanjiri ). Biroq, siz null-prototype obyektlarini Object.create(null)yoki ob'ektni ishga tushirish sintaksisidan foydalanib yaratishingiz mumkin __proto__: null(eslatma: __proto__ob'ekt literalidagi kalit eskirgan xususiyatdan farq qiladi Object.prototype.__proto__). Siz nullqo'ng'iroq qilib, mavjud ob'ektning prototipini ham o'zgartirishingiz mumkin Object.setPrototypeOf(obj, null).
+
+JS
+Buferga nusxalash
+const obj = Object.create(null);
+const obj2 = { __proto__: null };
+Prototipga ega ob'ekt o'zini nullkutilmagan tarzda tutishi mumkin, chunki u hech qanday ob'ekt usullarini meros qilib olmaydi Object.prototype. Bu, ayniqsa, disk raskadrovka paytida to'g'ri keladi, chunki umumiy ob'ekt-xususiyatni konvertatsiya qilish/aniqlash yordamchi funktsiyalari xatolarni keltirib chiqarishi yoki ma'lumotni yo'qotishi mumkin (ayniqsa, xatolarni e'tiborsiz qoldiradigan jim xato tuzoqlaridan foydalanilganda).
+
+Masalan, yo'qligi Object.prototype.toString()ko'pincha nosozliklarni tuzatishni qiyinlashtiradi:
+
+JS
+Buferga nusxalash
+const normalObj = {}; // create a normal object
+const nullProtoObj = Object.create(null); // create an object with "null" prototype
+
+console.log(`normalObj is: ${normalObj}`); // shows "normalObj is: [object Object]"
+console.log(`nullProtoObj is: ${nullProtoObj}`); // throws error: Cannot convert object to primitive value
+
+alert(normalObj); // shows [object Object]
+alert(nullProtoObj); // throws error: Cannot convert object to primitive value
+Boshqa usullar ham muvaffaqiyatsiz bo'ladi.
+
+JS
+Buferga nusxalash
+normalObj.valueOf(); // shows {}
+nullProtoObj.valueOf(); // throws error: nullProtoObj.valueOf is not a function
+
+normalObj.hasOwnProperty("p"); // shows "true"
+nullProtoObj.hasOwnProperty("p"); // throws error: nullProtoObj.hasOwnProperty is not a function
+
+normalObj.constructor; // shows "Object() { [native code] }"
+nullProtoObj.constructor; // shows "undefined"
+toStringBiz usulni null-prototip ob'ektiga bitta tayinlash orqali qo'shishimiz mumkin :
+
+JS
+Buferga nusxalash
+nullProtoObj.toString = Object.prototype.toString; // since new object lacks toString, add the original generic one back
+
+console.log(nullProtoObj.toString()); // shows "[object Object]"
+console.log(`nullProtoObj is: ${nullProtoObj}`); // shows "nullProtoObj is: [object Object]"
+toString()Ob'ekt prototipida joylashgan oddiy ob'ektlardan farqli o'laroq , toString()bu erda usul ning o'ziga xos xususiyatidir nullProtoObj. Buning sababi ( ) prototipi nullProtoObjyo'qligi .null
+
+Bundan tashqari, yordamida null-prototip ob'ektini oddiy ob'ektga qaytarishingiz mumkin Object.setPrototypeOf(nullProtoObj, Object.prototype).
+
+Amalda, prototipli ob'ektlar odatda xaritalarnull uchun arzon o'rinbosar sifatida ishlatiladi . Xususiyatlarning mavjudligi ba'zi xatolarga olib keladi:Object.prototype
+
+JS
+Buferga nusxalash
+const ages = { alice: 18, bob: 27 };
+
+function hasPerson(name) {
+  return name in ages;
+}
+
+function getAge(name) {
+  return ages[name];
+}
+
+hasPerson("hasOwnProperty"); // true
+getAge("toString"); // [Function: toString]
+hasPersonNull-prototip ob'ektidan foydalanish va funktsiyalarga juda ko'p murakkablik kiritmasdan ushbu xavfni yo'q qiladi getAge:
+
+JS
+Buferga nusxalash
+const ages = Object.create(null, {
+  alice: { value: 18, enumerable: true },
+  bob: { value: 27, enumerable: true },
+});
+
+hasPerson("hasOwnProperty"); // false
+getAge("toString"); // undefined
+Bunday holda, har qanday usulni qo'shish ehtiyotkorlik bilan amalga oshirilishi kerak, chunki ular ma'lumotlar sifatida saqlanadigan boshqa kalit-qiymat juftliklari bilan chalkashishi mumkin.
+
+Ob'ektingizni meros qilib olmaslik, Object.prototypeshuningdek, prototip ifloslanish hujumlarining oldini oladi. Agar zararli skript ga xususiyat qo'shsa Object.prototype, u nol prototipga ega bo'lgan ob'ektlardan tashqari dasturingizdagi barcha ob'ektlarda foydalanish mumkin bo'ladi.
+
+JS
+Buferga nusxalash
+const user = {};
+
+// A malicious script:
+Object.prototype.authenticated = true;
+
+// Unexpectedly allowing unauthenticated user to pass through
+if (user.authenticated) {
+  // access confidential data
+}
+JavaScript-da, shuningdek, prototipli ob'ektlarni ishlab chiqaradigan o'rnatilgan API-lar mavjud null, ayniqsa ob'ektlardan maxsus kalit-qiymatlar to'plami sifatida foydalanadiganlar. Masalan:
+
+Qaytish qiymatiObject.groupBy()
+ning natijasi groupsva xossalariindices.groupsRegExp.prototype.exec()
+Array.prototype[@@unscopables](barcha @@unscopablesob'ektlar nullprototipiga ega bo'lishi kerak)
+import.meta
+import * as ns from "module";yoki orqali olingan modul nom maydoni ob'ektlariimport()
+"-prototip ob'ekti" atamasi nullko'pincha Object.prototypeprototip zanjirida bo'lmagan har qanday ob'ektni ham o'z ichiga oladi. Bunday ob'ektlar extends nullsinflardan foydalanganda yaratilishi mumkin .
+
+Ob'ektni majburlash
+Ob'ektlarni kutadigan ko'plab o'rnatilgan operatsiyalar birinchi navbatda o'z argumentlarini ob'ektlarga majburlaydi. Operatsiyani quyidagicha umumlashtirish mumkin:
+
+Ob'ektlar avvalgidek qaytariladi.
+undefinedva nulltashlang TypeError.
+Number, String, Boolean, Symbol, BigIntibtidoiylar oʻzlariga mos obʼyekt oʻramlariga oʻraladi.
+JavaScript-da deyarli bir xil effektga erishishning ikki yo'li mavjud.
+
+Object.prototype.valueOf(): Object.prototype.valueOf.call(x)aylantirish uchun yuqorida bayon qilingan ob'ektni majburlash bosqichlarini aynan qiladi x.
+Funktsiya Object(): Object(x)aylantirish uchun bir xil algoritmdan foydalanadi x, bundan mustasno undefinedva nulla ni tashlamang TypeError, lekin oddiy ob'ektni qaytaring.
+Ob'ektni majburlashdan foydalanadigan joylarga quyidagilar kiradi:
+
+objectLooplar parametri for...in.
+thisUsullarning qiymati Array.
+Objectkabi usullarning parametrlari Object.keys().
+Xususiyatga ibtidoiy qiymatda kirishda avtomatik bokslash, chunki primitivlar xossalarga ega emas.
+thisQattiq bo'lmagan funktsiyani chaqirishda qiymat . Primitivlar esa bo'yaladi nullva global ob'ektundefined bilan almashtiriladi .
+Primitivlarga o'tkazishdan farqli o'laroq , ob'ektni majburlash jarayonining o'zi hech qanday tarzda kuzatilmaydi, chunki u kabi maxsus kod toStringyoki valueOfusullarni chaqirmaydi.
+
+Konstruktor
+Object()
+Kirishni ob'ektga aylantiradi.
+
+Statik usullar
+Object.assign()
+Bir yoki bir nechta manba ob'ektlaridan maqsadli ob'ektga barcha sanab o'tiladigan o'z xususiyatlarining qiymatlarini ko'chiradi.
+
+Object.create()
+Belgilangan prototip ob'ekti va xususiyatlari bilan yangi ob'ekt yaratadi.
+
+Object.defineProperties()
+Berilgan deskriptorlar tomonidan tasvirlangan nomli xususiyatlarni ob'ektga qo'shadi.
+
+Object.defineProperty()
+Berilgan deskriptor tomonidan tasvirlangan nomlangan xususiyatni ob'ektga qo'shadi.
+
+Object.entries()
+[key, value]Berilgan ob'ektning o'z sanab bo'ladigan satr xususiyatlarining barcha juftlarini o'z ichiga olgan massivni qaytaradi .
+
+Object.freeze()
+Ob'ektni muzlatib qo'yadi. Boshqa kod uning xususiyatlarini o'chira olmaydi yoki o'zgartira olmaydi.
+
+Object.fromEntries()
+Iterable juftlikdan yangi ob'ektni qaytaradi [key, value]. (Bu ning teskarisi Object.entries).
+
+Object.getOwnPropertyDescriptor()
+Ob'ektda nomlangan xususiyat uchun xususiyat identifikatorini qaytaradi.
+
+Object.getOwnPropertyDescriptors()
+Ob'ekt uchun barcha o'ziga xos xususiyat identifikatorlarini o'z ichiga olgan ob'ektni qaytaradi.
+
+Object.getOwnPropertyNames()
+Berilgan ob'ektning barcha sanab bo'ladigan va sanab bo'lmaydigan xususiyatlarining nomlarini o'z ichiga olgan massivni qaytaradi .
+
+Object.getOwnPropertySymbols()
+To'g'ridan-to'g'ri berilgan ob'ektda topilgan barcha belgilar xususiyatlarining massivini qaytaradi.
+
+Object.getPrototypeOf()
+[[Prototype]]Belgilangan ob'ektning prototipini (ichki xususiyatini) qaytaradi .
+
+Object.groupBy()
+Berilgan takrorlanuvchi elementlarni taqdim etilgan qayta qoʻngʻiroq funksiyasi tomonidan qaytarilgan satr qiymatlari boʻyicha guruhlarga ajratadi. Qaytarilgan ob'ekt har bir guruh uchun alohida xususiyatlarga ega bo'lib, guruhdagi elementlarga ega massivlarni o'z ichiga oladi.
+
+Object.hasOwn()
+trueBelgilangan ob'ekt o'z mulki sifatida ko'rsatilgan xususiyatga ega bo'lsa yoki mulk falsemeros bo'lib qolgan yoki mavjud bo'lmasa, qaytaradi .
+
+Object.is()
+Ikki qiymat bir xil qiymatga ega bo'lsa, taqqoslaydi. Barcha NaNqiymatlarni tenglashtiradi (bu IsLooselyEqualtomonidan ishlatiladigan ==va IsStrictlyEqualtomonidan ishlatilganidan farq qiladi ===).
+
+Object.isExtensible()
+Ob'ektni kengaytirishga ruxsat berilganligini aniqlaydi.
+
+Object.isFrozen()
+Ob'ektning muzlatilganligini aniqlaydi.
+
+Object.isSealed()
+Ob'ektning muhrlanganligini aniqlaydi.
+
+Object.keys()
+Berilgan ob'ektning barcha sanab o'tiladigan qator xususiyatlarining nomlarini o'z ichiga olgan massivni qaytaradi .
+
+Object.preventExtensions()
+Ob'ektning har qanday kengaytmalarini oldini oladi.
+
+Object.seal()
+Boshqa kodlar ob'ekt xususiyatlarini o'chirishni oldini oladi.
+
+Object.setPrototypeOf()
+Ob'ektning prototipini (uning ichki [[Prototype]]xususiyati) o'rnatadi.
+
+Object.values()
+Berilgan ob'ektning barcha sanab o'tiladigan satr xususiyatlariga mos keladigan qiymatlarni o'z ichiga olgan massivni qaytaradi .
+
+Namuna xususiyatlari
+Object.prototypeBu xususiyatlar barcha misollarda aniqlanadi va ular tomonidan baham ko'riladi Object.
+
+Object.prototype.__proto__ Eskirgan
+Ob'ekt yaratilganda prototip sifatida ishlatilgan ob'ektga ishora qiladi.
+
+Object.prototype.constructor
+Namuna ob'ektini yaratgan konstruktor funktsiyasi. Oddiy Objectmisollar uchun boshlang'ich qiymat Objectkonstruktor hisoblanadi. Boshqa konstruktorlarning namunalari har biri constructortegishli ob'ektdan mulkni meros qilib oladi Constructor.prototype.
+
+Namuna usullari
+Object.prototype.__defineGetter__() Eskirgan
+Funksiyani kirishda ushbu funktsiyani bajaradigan va uning qaytish qiymatini qaytaradigan xususiyat bilan bog'laydi.
+
+Object.prototype.__defineSetter__() Eskirgan
+Funksiyani o‘rnatilganda xususiyatni o‘zgartiruvchi funksiyani bajaradigan xususiyat bilan bog‘laydi.
+
+Object.prototype.__lookupGetter__() Eskirgan
+Belgilangan xususiyatga qabul qiluvchi sifatida bog'langan funktsiyani qaytaradi.
+
+Object.prototype.__lookupSetter__() Eskirgan
+Belgilangan xususiyatga o'rnatuvchi sifatida bog'langan funktsiyani qaytaradi.
+
+Object.prototype.hasOwnProperty()
+Ob'ektda ushbu ob'ektning to'g'ridan-to'g'ri xossasi sifatida ko'rsatilgan xususiyat mavjud yoki prototip zanjiri orqali meros bo'lib o'tmaganligini ko'rsatadigan mantiqiy qiymatni qaytaradi.
+
+Object.prototype.isPrototypeOf()
+Ushbu usul chaqirilgan ob'ekt belgilangan ob'ektning prototip zanjirida ekanligini ko'rsatadigan mantiqiy qiymatni qaytaradi.
+
+Object.prototype.propertyIsEnumerable()
+Belgilangan xususiyat ob'ektning sanab o'tiladigan shaxsiy mulki ekanligini ko'rsatadigan mantiqiy qiymatni qaytaradi.
+
+Object.prototype.toLocaleString()
+Qo'ng'iroqlar toString().
+
+Object.prototype.toString()
+Ob'ektning satr tasvirini qaytaradi.
+
+Object.prototype.valueOf()
+Belgilangan ob'ektning ibtidoiy qiymatini qaytaradi.
+
+
+
+
+
+Bir nechta bu metodlar arraylar bilan ishlashni osonlashtiradi. 
+
+- `at()`: Berilgan indeks bo'yicha elementni qaytaradi. 
+- `concat()`: Arraylarni bitta arrayga birlashtiradi va yangi arrayni qaytaradi. 
+- `copyWithin()`: Arrayning bir qismini boshqa joyga ko'chiradi. 
+- `entries()`: Arrayning har bir elementi uchun iterator qaytaradi. 
+- `every()`: Har bir elementga berilgan shartni tekshiradi va hamma shart bajarilsa true qaytaradi. 
+- `fill()`: Arrayning barcha elementlarini berilgan qiymat bilan to'ldiradi. 
+- `filter()`: Berilgan shartni qanoatlantiradigan elementlardan iborat yangi bir array qaytaradi. 
+- `find()`: Berilgan shartni qanoatlantiradigan birinchi elementni qaytaradi. 
+- `findIndex()`: Berilgan shartni qanoatlantiradigan birinchi elementning indeksini qaytaradi. 
+- `flat()`: Nested arraylarni olib tashlangan yangi bitta array qaytaradi. 
+- `flatMap()`: Berilgan shartga asoslangan har bir elementni birlashtiradi va mos keladigan elementlardan iborat yangi bir array qaytaradi. 
+- `forEach()`: Har bir element uchun qo'llanuvchini chaqiradi. 
+- `includes()`: Arrayda berilgan element borligini tekshiradi. 
+- `indexOf()`: Berilgan elementning birinchi indeksini qaytaradi. 
+- va h.k.
+
+Bu metodlarning har birining izohi qisqa bo'lishi mumkin, lekin ularning bir qismini yoki barchasini ishlatish uchun, kerakli dokumentatsiyani yoki resurslarni ko'rish tavsiya etiladi.
+
+
+Array.prototype.reduce()
+reduce()Namunalar usuli massivning Arrayhar bir elementida foydalanuvchi tomonidan taqdim etilgan "reduktor" qayta qo'ng'iroq qilish funktsiyasini oldingi elementdagi hisob-kitobdan qaytarish qiymatini o'tkazish tartibida bajaradi. Reduktorni massivning barcha elementlari bo'ylab ishga tushirishning yakuniy natijasi bitta qiymatdir.
+
+Qayta qo'ng'iroq birinchi marta amalga oshirilganda, "oldingi hisobning qaytish qiymati" yo'q. Agar taqdim etilgan bo'lsa, uning o'rniga boshlang'ich qiymatdan foydalanish mumkin. Aks holda 0 indeksidagi massiv elementi boshlang'ich qiymat sifatida ishlatiladi va iteratsiya keyingi elementdan boshlanadi (indeks 0 o'rniga 1).
